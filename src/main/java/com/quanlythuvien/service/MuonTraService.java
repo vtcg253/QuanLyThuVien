@@ -69,15 +69,23 @@ public class MuonTraService {
 
     @Transactional(readOnly = true)
     public long demDangMuon() {
-        return phieuMuonRepository.findAll().stream()
-                .filter(p -> p.getChiTiet() != null && !p.getChiTiet().isEmpty())
-                .filter(p -> p.getChiTiet().stream().anyMatch(CtPhieuMuon::dangMuon))
+        return phieuMuonRepository.findAllWithDetails().stream()
+                .filter(p -> "Đang mượn".equals(p.trangThai()))
+                .count();
+    }
+
+    @Transactional(readOnly = true)
+    public long demPhieuDaTra() {
+        return phieuMuonRepository.findAllWithDetails().stream()
+                .filter(p -> "Đã trả".equals(p.trangThai()))
                 .count();
     }
 
     @Transactional(readOnly = true)
     public long demPhieuQuaHan() {
-        return phieuMuonRepository.countPhieuQuaHan(LocalDate.now(), TrangThaiChiTietMuon.BORROWED);
+        return phieuMuonRepository.findAllWithDetails().stream()
+                .filter(p -> "Quá hạn".equals(p.trangThai()))
+                .count();
     }
 
     @Transactional(readOnly = true)

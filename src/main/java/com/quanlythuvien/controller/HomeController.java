@@ -23,6 +23,7 @@ public class HomeController {
         model.addAttribute("thongKeTrangThaiMuon", muonTraService.thongKeTrangThaiMuon());
         model.addAttribute("tongPhieu", muonTraService.demPhieu());
         model.addAttribute("tongDangMuon", muonTraService.demDangMuon());
+        model.addAttribute("tongPhieuDaTra", muonTraService.demPhieuDaTra());
         model.addAttribute("tongPhieuQuaHan", muonTraService.demPhieuQuaHan());
         model.addAttribute("pageTitle", "Dashboard quản lý");
         return "dashboard";

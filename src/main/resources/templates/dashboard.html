@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title th:text="${pageTitle}">Dashboard quản lý</title>
-    <link rel="stylesheet" th:href="@{/css/app.css(v=16)}">
+    <link rel="stylesheet" th:href="@{/css/app.css(v=17)}">
 </head>
 <body>
 <div th:replace="~{fragments/layout :: topbar('dashboard')}" ></div>
@@ -25,11 +25,15 @@
                 <span class="label">Phiếu mượn</span>
                 <strong th:text="${tongPhieu}">0</strong>
             </div>
-            <a class="stat-card stat-card-link warning" th:href="@{/muontra}">
-                <span class="label">Đang mượn</span>
+            <a class="stat-card stat-card-link warning" th:href="@{/muontra(status='BORROWED')}">
+                <span class="label">Phiếu đang mượn</span>
                 <strong th:text="${tongDangMuon}">0</strong>
             </a>
-            <a class="stat-card stat-card-link overdue" th:href="@{/muontra}">
+            <a class="stat-card stat-card-link returned" th:href="@{/muontra(status='RETURNED')}">
+                <span class="label">Phiếu đã trả</span>
+                <strong th:text="${tongPhieuDaTra}">0</strong>
+            </a>
+            <a class="stat-card stat-card-link overdue" th:href="@{/muontra(status='OVERDUE')}">
                 <span class="label">Phiếu quá hạn</span>
                 <strong th:text="${tongPhieuQuaHan}">0</strong>
                 <span class="stat-card-hint">Cần xử lý · Xem phiếu mượn</span>

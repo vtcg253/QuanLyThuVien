@@ -24,7 +24,7 @@
 - Oracle Database đang chạy và có schema phù hợp
 - Maven không bắt buộc cài riêng nếu dùng Maven Wrapper
 
-Schema tham khảo nằm trong [`sql/expected-schema.sql`](sql/expected-schema.sql). Ứng dụng dùng các bảng đã được tạo sẵn và không tự tạo/cập nhật schema.
+Schema tham khảo nằm trong [`sql/expected-schema.sql`](sql/expected-schema.sql). File [`sql/Quan Ly Thu Vien.sql`](sql/Quan%20Ly%20Thu%20Vien.sql) là script SQL được lưu làm tài liệu tham khảo; cần đối chiếu và đồng bộ schema trước khi chạy. Script hiện có trigger tự thay đổi tồn kho trong khi ứng dụng cũng cập nhật tồn kho, và bảng chi tiết mượn chưa có đủ các cột mà phiên bản ứng dụng hiện tại ánh xạ. Không chạy nguyên trạng script này trên database đang dùng với ứng dụng.
 
 ## Cấu hình cơ sở dữ liệu
 
