@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Lỗi</title>
+    <link rel="stylesheet" th:href="@{/css/app.css(v=16)}">
+</head>
+<body>
+<div th:replace="~{fragments/layout :: topbar('')}"></div>
+<div class="container">
+    <div class="card">
+        <h1>Không thể xử lý yêu cầu</h1>
+        <p class="sub">Kiểm tra kết nối Oracle, tên cột bảng/view, hoặc xem log Spring Boot.</p>
+        <p th:if="${status}">Mã lỗi: <strong th:text="${status}">500</strong></p>
+        <a class="btn btn-primary" th:href="@{/sach}">Về danh sách sách</a>
+    </div>
+</div>
+</body>
+</html>

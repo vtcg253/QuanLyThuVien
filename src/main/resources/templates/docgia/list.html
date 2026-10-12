@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${pageTitle}">Quản lý độc giả</title>
+    <link rel="stylesheet" th:href="@{/css/app.css(v=16)}">
+</head>
+<body>
+<div th:replace="~{fragments/layout :: topbar('docgia')}"></div>
+<div class="container">
+    <div class="card">
+        <div class="category-page-heading">
+            <div>
+                <h1>Quản lý độc giả</h1>
+                <p class="sub">Quản lý thông tin bạn đọc đăng ký mượn sách tại thư viện.</p>
+            </div>
+            <button class="btn btn-primary category-add-button" type="button" data-open-category-dialog>
+                <span aria-hidden="true">＋</span>
+                <span>Thêm độc giả</span>
+            </button>
+        </div>
+
+        <div th:if="${success}" class="alert alert-ok" th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-err" th:text="${error}"></div>
+
+        <dialog class="category-dialog reader-dialog" id="category-dialog" th:attr="data-open-on-load=${moDialog}">
+            <div class="category-dialog-heading">
+                <div class="category-dialog-icon" aria-hidden="true">♙</div>
+                <div>
+                    <h2 th:text="${dangSua} ? 'Cập nhật độc giả' : 'Thêm độc giả mới'">Thêm độc giả mới</h2>
+                    <p>Mã độc giả được hệ thống tự động tạo.</p>
+                </div>
+                <button class="category-dialog-close" type="button" aria-label="Đóng" data-close-category-dialog>×</button>
+            </div>
+            <form method="post" th:action="@{/docgia/luu}" th:object="${form}">
+                <input type="hidden" th:field="*{maDocGia}">
+                <div class="reader-form-grid">
+                    <div class="field reader-span-2">
+                        <label for="reader-name">Họ và tên *</label>
+                        <input id="reader-name" th:field="*{hoTen}" required maxlength="100"
+                               placeholder="Nhập họ tên độc giả" autocomplete="name">
+                    </div>
+                    <div class="field">
+                        <label for="reader-birthdate">Ngày sinh</label>
+                        <input id="reader-birthdate" type="date" th:field="*{ngaySinh}">
+                    </div>
+                    <div class="field">
+                        <label for="reader-phone">Số điện thoại</label>
+                        <input id="reader-phone" type="tel" th:field="*{dienThoai}" maxlength="15"
+                               placeholder="Nhập số điện thoại" autocomplete="tel">
+                    </div>
+                    <div class="field reader-span-2">
+                        <label for="reader-address">Địa chỉ</label>
+                        <input id="reader-address" th:field="*{diaChi}" maxlength="200"
+                               placeholder="Nhập địa chỉ" autocomplete="street-address">
+                    </div>
+                </div>
+                <div class="category-dialog-actions">
+                    <a class="btn btn-ghost" th:href="@{/docgia}">Hủy</a>
+                    <button class="btn btn-primary" type="submit" th:text="${dangSua} ? 'Lưu thay đổi' : 'Thêm độc giả'">
+                        Thêm độc giả
+                    </button>
+                </div>
+            </form>
+        </dialog>
+
+        <div th:if="${dsDocGia.isEmpty()}" class="empty">Chưa có độc giả. Hãy thêm độc giả đầu tiên.</div>
+        <div class="table-scroll" th:if="${!dsDocGia.isEmpty()}">
+            <table>
+                <thead>
+                <tr>
+                    <th class="code-column">Mã</th>
+                    <th>Họ và tên</th>
+                    <th>Ngày sinh</th>
+                    <th>Số điện thoại</th>
+                    <th>Địa chỉ</th>
+                    <th class="reader-actions-heading">Thao tác</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="docGia : ${dsDocGia}">
+                    <td class="code-column" th:text="${docGia.maDocGia}">DG01</td>
+                    <td th:text="${docGia.hoTen}">Tên độc giả</td>
+                    <td th:text="${docGia.ngaySinh != null ? docGia.ngaySinh : '—'}">2002-05-15</td>
+                    <td th:text="${docGia.dienThoai != null and !docGia.dienThoai.isBlank() ? docGia.dienThoai : '—'}">0912345678</td>
+                    <td th:text="${docGia.diaChi != null and !docGia.diaChi.isBlank() ? docGia.diaChi : '—'}">Hà Nội</td>
+                    <td class="actions">
+                        <a class="btn btn-ghost btn-sm"
+                           th:href="@{/docgia/sua/{ma}(ma=${docGia.maDocGia},page=${pagination.currentPage})}">Sửa</a>
+                        <form class="confirm-delete-form"
+                              th:action="@{/docgia/xoa/{ma}(ma=${docGia.maDocGia})}" method="post"
+                              th:attr="data-confirm-name=${docGia.hoTen}">
+                            <button class="btn btn-danger btn-sm" type="submit">Xóa</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div th:replace="~{fragments/pagination :: pager(${pagination}, ${paginationUrl})}"></div>
+
+        <dialog class="category-dialog delete-dialog" id="delete-dialog">
+            <div class="category-dialog-heading">
+                <div class="delete-dialog-icon" aria-hidden="true">!</div>
+                <div>
+                    <h2>Xác nhận xóa</h2>
+                    <p>Độc giả sẽ bị xóa khỏi hệ thống.</p>
+                </div>
+                <button class="category-dialog-close" type="button" aria-label="Đóng" data-close-delete-dialog>×</button>
+            </div>
+            <div class="delete-dialog-content">
+                <p>Bạn có chắc muốn xóa độc giả <strong id="delete-item-name"></strong> không?</p>
+                <p class="delete-dialog-note">Độc giả đã có phiếu mượn sẽ không thể bị xóa.</p>
+                <div class="category-dialog-actions">
+                    <button class="btn btn-ghost" type="button" data-close-delete-dialog>Hủy</button>
+                    <button class="btn btn-danger" type="button" id="confirm-delete-item">Xóa độc giả</button>
+                </div>
+            </div>
+        </dialog>
+    </div>
+</div>
+</body>
+</html>

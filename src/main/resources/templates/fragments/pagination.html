@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<body>
+<nav th:fragment="pager(page, baseUrl)" class="pagination" aria-label="Phân trang"
+     th:if="${page.totalItems > 0}">
+    <span class="pagination-summary"
+          th:text="'Hiển thị ' + ${page.startItem} + '–' + ${page.endItem} + ' trên ' + ${page.totalItems}">
+        Hiển thị 1–10 trên 100
+    </span>
+    <div class="pagination-controls" th:if="${page.totalPages > 1}">
+        <a class="pagination-link" th:if="${page.currentPage > 1}"
+           th:href="${baseUrl + (page.currentPage - 1)}"
+           aria-label="Trang trước">‹</a>
+        <span class="pagination-link is-disabled" th:unless="${page.currentPage > 1}" aria-hidden="true">‹</span>
+        <a class="pagination-link" th:each="pageNumber : ${page.pages}"
+           th:href="${baseUrl + pageNumber}"
+           th:attr="aria-current=${pageNumber == page.currentPage ? 'page' : null}"
+           th:classappend="${pageNumber == page.currentPage} ? ' is-current'"
+           th:text="${pageNumber}">1</a>
+        <a class="pagination-link" th:if="${page.currentPage < page.totalPages}"
+           th:href="${baseUrl + (page.currentPage + 1)}"
+           aria-label="Trang sau">›</a>
+        <span class="pagination-link is-disabled" th:unless="${page.currentPage < page.totalPages}" aria-hidden="true">›</span>
+    </div>
+</nav>
+</body>
+</html>

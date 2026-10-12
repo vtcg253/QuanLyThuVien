@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${pageTitle}">Đăng nhập thư viện</title>
+    <link rel="stylesheet" th:href="@{/css/app.css(v=16)}">
+</head>
+<body class="auth-page">
+<main class="auth-card">
+    <a class="auth-brand" th:href="@{/login}">
+        <span class="sidebar-brand-icon" aria-hidden="true">
+            <svg class="library-logo" viewBox="0 0 48 48" fill="none" focusable="false">
+                <path d="M7.5 11.5c6.4-2.4 12-.9 16.5 3v25c-4.5-3.9-10.1-5.4-16.5-3v-25Z"
+                      stroke="currentColor" stroke-width="2.8" stroke-linejoin="round"/>
+                <path d="M40.5 11.5c-6.4-2.4-12-.9-16.5 3v25c4.5-3.9 10.1-5.4 16.5-3v-25Z"
+                      stroke="currentColor" stroke-width="2.8" stroke-linejoin="round"/>
+                <path d="M12 17c3-.7 6-.3 8.5 1.1M12 22c3-.7 6-.3 8.5 1.1M36 17c-3-.7-6-.3-8.5 1.1M36 22c-3-.7-6-.3-8.5 1.1"
+                      stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+            </svg>
+        </span>
+        <span>Quản lý thư viện<small>Đăng nhập hệ thống</small></span>
+    </a>
+    <h1>Chào mừng trở lại</h1>
+    <p class="sub">Đăng nhập bằng tài khoản nhân viên thư viện.</p>
+
+    <div th:if="${param.error}" class="alert alert-err">Tên đăng nhập hoặc mật khẩu không đúng.</div>
+    <div th:if="${param.logout}" class="alert alert-ok">Bạn đã đăng xuất.</div>
+    <form class="auth-form" th:action="@{/login}" method="post">
+        <div class="field">
+            <label for="username">Tên đăng nhập</label>
+            <input id="username" name="username" required maxlength="50" autocomplete="username" autofocus>
+        </div>
+        <div class="field">
+            <label for="password">Mật khẩu</label>
+            <input id="password" name="password" type="password" required autocomplete="current-password">
+        </div>
+        <button class="btn btn-primary" type="submit">Đăng nhập</button>
+    </form>
+
+</main>
+</body>
+</html>

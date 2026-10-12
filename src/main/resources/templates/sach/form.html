@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${pageTitle}">Form sách</title>
+    <link rel="stylesheet" th:href="@{/css/app.css(v=29)}">
+</head>
+<body>
+<div th:replace="~{fragments/layout :: topbar(${isEdit} ? 'sach' : 'them')}"></div>
+<div class="container">
+    <div class="card">
+        <h1 th:text="${isEdit} ? 'Sửa sách' : 'Thêm sách mới'">Form</h1>
+        <p class="sub">Mã sách được tạo tự động để thuận tiện cho việc quản lý kho và mượn trả.</p>
+
+        <div th:if="${error}" class="alert alert-err" th:text="${error}"></div>
+
+        <form th:action="@{/sach/luu}" method="post" th:object="${sach}">
+            <input type="hidden" name="isEdit" th:value="${isEdit}">
+            <div class="grid book-form-grid">
+                <div class="field field-code book-code-field" th:if="${isEdit}">
+                    <label>Mã sách</label>
+                    <input th:field="*{maSach}" readonly maxlength="20" class="code-input">
+                </div>
+                <div class="field field-code book-code-field" th:unless="${isEdit}">
+                    <label>Mã sách</label>
+                    <input th:field="*{maSach}" readonly maxlength="20" class="code-input">
+                </div>
+                <div class="field book-title-field">
+                    <label>Tên sách *</label>
+                    <input th:field="*{tenSach}" required maxlength="200">
+                </div>
+                <div class="field book-meta-field">
+                    <label for="the-loai-search">Thể loại</label>
+                    <div class="book-reference-control">
+                        <input id="the-loai-search" class="book-reference-input" type="text"
+                               data-search-field="maTheLoai" list="the-loai-options"
+                               placeholder="Tìm hoặc chọn thể loại..." autocomplete="off">
+                        <button class="btn btn-ghost btn-sm category-toggle" type="button"
+                                aria-expanded="false" aria-controls="add-category-panel">+ Thêm</button>
+                    </div>
+                    <datalist id="the-loai-options">
+                        <option th:each="tl : ${dsTheLoai}"
+                                th:value="${tl.maTheLoai + ' - ' + tl.tenTheLoai}"
+                                th:attr="data-code=${tl.maTheLoai}"></option>
+                    </datalist>
+                    <input type="hidden" th:field="*{maTheLoai}">
+                    <dialog class="category-dialog quick-add-dialog" id="add-category-panel">
+                        <div class="category-dialog-heading">
+                            <div class="category-dialog-icon" aria-hidden="true">✦</div>
+                            <div>
+                                <h2>Thêm thể loại mới</h2>
+                                <p>Mã thể loại sẽ được tạo tự động.</p>
+                            </div>
+                            <button class="category-dialog-close" type="button" aria-label="Đóng" data-close-category-dialog>×</button>
+                        </div>
+                        <div class="quick-add-content">
+                            <label for="new-category-name">Tên thể loại</label>
+                            <input id="new-category-name" type="text" maxlength="100" placeholder="Nhập tên thể loại">
+                            <button class="btn btn-primary btn-sm" id="add-category-button" type="button">Thêm</button>
+                            <div id="category-add-message" class="author-add-message" role="status" aria-live="polite"></div>
+                        </div>
+                    </dialog>
+                </div>
+                <div class="field book-meta-field">
+                    <label for="tac-gia-search">Tác giả</label>
+                    <div class="book-reference-control">
+                        <input id="tac-gia-search" class="book-reference-input" type="text"
+                               data-search-field="maTacGia" list="tac-gia-options"
+                               placeholder="Tìm hoặc chọn tác giả..." autocomplete="off">
+                        <button class="btn btn-ghost btn-sm author-toggle" type="button"
+                                aria-expanded="false" aria-controls="add-author-panel">+ Thêm</button>
+                    </div>
+                    <datalist id="tac-gia-options">
+                        <option th:each="tg : ${dsTacGia}"
+                                th:value="${tg.maTacGia + ' - ' + tg.tenTacGia}"
+                                th:attr="data-code=${tg.maTacGia}"></option>
+                    </datalist>
+                    <input type="hidden" th:field="*{maTacGia}">
+                    <dialog class="category-dialog quick-add-dialog" id="add-author-panel">
+                        <div class="category-dialog-heading">
+                            <div class="category-dialog-icon" aria-hidden="true">✦</div>
+                            <div>
+                                <h2>Thêm tác giả mới</h2>
+                                <p>Mã tác giả sẽ được tạo tự động.</p>
+                            </div>
+                            <button class="category-dialog-close" type="button" aria-label="Đóng" data-close-author-dialog>×</button>
+                        </div>
+                        <div class="quick-add-content author-quick-add-content">
+                            <label for="new-author-name">Tên tác giả</label>
+                            <input id="new-author-name" type="text" maxlength="100" placeholder="Nhập tên tác giả">
+                            <label for="new-author-address">Địa chỉ</label>
+                            <input id="new-author-address" type="text" maxlength="200" placeholder="Nhập địa chỉ">
+                            <button class="btn btn-primary btn-sm" id="add-author-button" type="button">Thêm</button>
+                            <div id="author-add-message" class="author-add-message" role="status" aria-live="polite"></div>
+                        </div>
+                    </dialog>
+                </div>
+                <div class="field book-meta-field">
+                    <label for="nxb-search">Nhà xuất bản</label>
+                    <div class="book-reference-control">
+                        <input id="nxb-search" class="book-reference-input" type="text"
+                               data-search-field="maNxb" list="nxb-options"
+                               placeholder="Tìm hoặc chọn nhà xuất bản..." autocomplete="off">
+                        <button class="btn btn-ghost btn-sm publisher-toggle" type="button"
+                                aria-expanded="false" aria-controls="add-publisher-panel">+ Thêm</button>
+                    </div>
+                    <datalist id="nxb-options">
+                        <option th:each="nxb : ${dsNxb}"
+                                th:value="${nxb.maNxb + ' - ' + nxb.tenNxb}"
+                                th:attr="data-code=${nxb.maNxb}"></option>
+                    </datalist>
+                    <input type="hidden" th:field="*{maNxb}">
+                    <dialog class="category-dialog quick-add-dialog" id="add-publisher-panel">
+                        <div class="category-dialog-heading">
+                            <div class="category-dialog-icon" aria-hidden="true">✦</div>
+                            <div>
+                                <h2>Thêm nhà xuất bản mới</h2>
+                                <p>Mã nhà xuất bản sẽ được tạo tự động.</p>
+                            </div>
+                            <button class="category-dialog-close" type="button" aria-label="Đóng" data-close-publisher-dialog>×</button>
+                        </div>
+                        <div class="quick-add-content publisher-quick-add-content">
+                            <label for="new-publisher-name">Tên nhà xuất bản</label>
+                            <input id="new-publisher-name" type="text" maxlength="100" placeholder="Nhập tên nhà xuất bản">
+                            <label for="new-publisher-address">Địa chỉ</label>
+                            <input id="new-publisher-address" type="text" maxlength="200" placeholder="Nhập địa chỉ">
+                            <label for="new-publisher-phone">Số điện thoại</label>
+                            <input id="new-publisher-phone" type="tel" maxlength="15" placeholder="Nhập số điện thoại">
+                            <button class="btn btn-primary btn-sm" id="add-publisher-button" type="button">Thêm</button>
+                            <div id="publisher-add-message" class="author-add-message" role="status" aria-live="polite"></div>
+                        </div>
+                    </dialog>
+                </div>
+                <div class="field book-small-field">
+                    <label>Năm xuất bản</label>
+                    <input type="number" th:field="*{namXb}" min="1000" max="2100">
+                </div>
+                <div class="field book-small-field">
+                    <label>Số lượng tồn *</label>
+                    <input type="number" th:field="*{soLuong}" min="0" required>
+                </div>
+            </div>
+            <div class="toolbar" style="margin-top:18px">
+                <button class="btn btn-primary" type="submit">Lưu</button>
+                <a class="btn btn-ghost" th:href="@{/sach}">Hủy</a>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

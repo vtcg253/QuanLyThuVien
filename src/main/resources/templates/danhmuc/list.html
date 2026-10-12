@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${pageTitle}">Quản lý danh mục</title>
+    <link rel="stylesheet" th:href="@{/css/app.css(v=16)}">
+</head>
+<body>
+<div th:replace="~{fragments/layout :: topbar(${loai})}"></div>
+<div class="container">
+    <div class="card">
+        <div class="category-page-heading">
+            <div>
+                <h1 th:text="'Quản lý ' + ${tenDanhMuc.toLowerCase()}">Quản lý danh mục</h1>
+                <p class="sub">Quản lý danh sách và thông tin danh mục thư viện.</p>
+            </div>
+            <button class="btn btn-primary category-add-button" type="button" data-open-category-dialog>
+                <span aria-hidden="true">＋</span>
+                <span th:text="'Thêm ' + ${tenDanhMuc.toLowerCase()}">Thêm danh mục</span>
+            </button>
+        </div>
+
+        <div th:if="${success}" class="alert alert-ok" th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-err" th:text="${error}"></div>
+
+        <dialog class="category-dialog" th:classappend="${loai == 'nha-xuat-ban'} ? ' publisher-dialog'"
+                id="category-dialog" th:attr="data-open-on-load=${dangSua}">
+            <div class="category-dialog-heading">
+                <div class="category-dialog-icon" aria-hidden="true">✦</div>
+                <div>
+                    <h2 th:text="${dangSua} ? 'Chỉnh sửa ' + ${tenDanhMuc.toLowerCase()} : 'Thêm ' + ${tenDanhMuc.toLowerCase()}">Thêm danh mục</h2>
+                    <p>Mã sẽ được tạo tự động sau khi lưu.</p>
+                </div>
+                <button class="category-dialog-close" type="button" aria-label="Đóng" data-close-category-dialog>×</button>
+            </div>
+            <form method="post" th:action="@{/danhmuc/{loai}/luu(loai=${loai})}" th:object="${form}">
+                <input type="hidden" th:field="*{ma}">
+                <div class="field">
+                    <label th:for="${'category-name-' + loai}" th:text="'Tên ' + ${tenDanhMuc.toLowerCase()}">Tên danh mục</label>
+                    <input th:id="${'category-name-' + loai}" th:field="*{ten}" required maxlength="100"
+                           placeholder="Nhập tên" autocomplete="off" autofocus>
+                </div>
+                <div class="field" th:if="${loai == 'nha-xuat-ban' or loai == 'tac-gia'}">
+                    <label th:for="${loai == 'tac-gia' ? 'author-address' : 'publisher-address'}">Địa chỉ</label>
+                    <input th:id="${loai == 'tac-gia' ? 'author-address' : 'publisher-address'}"
+                           th:field="*{diaChi}" maxlength="200"
+                           placeholder="Nhập địa chỉ" autocomplete="street-address">
+                </div>
+                <div class="field" th:if="${loai == 'nha-xuat-ban'}">
+                    <label for="publisher-phone">Số điện thoại</label>
+                    <input id="publisher-phone" th:field="*{sdt}" maxlength="15"
+                           placeholder="Nhập số điện thoại" autocomplete="tel">
+                </div>
+                <div class="category-dialog-actions">
+                    <a class="btn btn-ghost" th:href="@{/danhmuc/{loai}(loai=${loai})}">Hủy</a>
+                    <button class="btn btn-primary" type="submit" th:text="${dangSua} ? 'Lưu thay đổi' : 'Thêm mới'">Thêm mới</button>
+                </div>
+            </form>
+        </dialog>
+
+        <div th:if="${items.isEmpty()}" class="empty">Chưa có dữ liệu danh mục.</div>
+        <table th:if="${!items.isEmpty()}">
+            <thead>
+            <tr>
+                <th class="code-column">Mã</th>
+                <th th:text="'Tên ' + ${tenDanhMuc.toLowerCase()}">Tên</th>
+                <th th:if="${loai == 'nha-xuat-ban' or loai == 'tac-gia'}">Địa chỉ</th>
+                <th th:if="${loai == 'nha-xuat-ban'}">Số điện thoại</th>
+                <th class="category-actions-heading">Thao tác</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="item : ${items}">
+                <td class="code-column" th:text="${item.ma}">TG01</td>
+                <td th:text="${item.ten}">Tên danh mục</td>
+                <td th:if="${loai == 'nha-xuat-ban' or loai == 'tac-gia'}" th:text="${item.diaChi} ?: '—'">Địa chỉ</td>
+                <td th:if="${loai == 'nha-xuat-ban'}" th:text="${item.sdt} ?: '—'">Số điện thoại</td>
+                <td class="actions">
+                    <a class="btn btn-ghost btn-sm"
+                       th:href="@{/danhmuc/{loai}/sua/{ma}(loai=${loai},ma=${item.ma},page=${pagination.currentPage})}">Sửa</a>
+                    <form class="confirm-delete-form"
+                          th:action="@{/danhmuc/{loai}/xoa/{ma}(loai=${loai},ma=${item.ma})}" method="post"
+                          th:attr="data-confirm-name=${item.ten}">
+                        <button class="btn btn-danger btn-sm" type="submit">Xóa</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <div th:replace="~{fragments/pagination :: pager(${pagination}, ${paginationUrl})}"></div>
+
+        <dialog class="category-dialog delete-dialog" id="delete-dialog">
+            <div class="category-dialog-heading">
+                <div class="delete-dialog-icon" aria-hidden="true">!</div>
+                <div>
+                    <h2>Xác nhận xóa</h2>
+                    <p>Thông tin sẽ bị xóa khỏi hệ thống.</p>
+                </div>
+                <button class="category-dialog-close" type="button" aria-label="Đóng" data-close-delete-dialog>×</button>
+            </div>
+            <div class="delete-dialog-content">
+                <p>Bạn có chắc muốn xóa <strong id="delete-item-name"></strong> không?</p>
+                <p class="delete-dialog-note">Nếu thông tin đang được dữ liệu khác sử dụng, hệ thống sẽ không cho phép xóa.</p>
+                <div class="category-dialog-actions">
+                    <button class="btn btn-ghost" type="button" data-close-delete-dialog>Hủy</button>
+                    <button class="btn btn-danger" type="button" id="confirm-delete-item">Xóa</button>
+                </div>
+            </div>
+        </dialog>
+    </div>
+</div>
+</body>
+</html>

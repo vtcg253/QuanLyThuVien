@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${pageTitle}">Quản lý thủ thư</title>
+    <link rel="stylesheet" th:href="@{/css/app.css(v=16)}">
+</head>
+<body>
+<div th:replace="~{fragments/layout :: topbar('nhanvien')}"></div>
+<div class="container">
+    <div class="card">
+        <div class="category-page-heading">
+            <div>
+                <h1>Quản lý thủ thư &amp; tài khoản</h1>
+                <p class="sub">Hồ sơ nhân viên lưu trong NHANVIEN; tên đăng nhập và mật khẩu mã hóa lưu riêng trong TAIKHOAN.</p>
+            </div>
+            <button class="btn btn-primary category-add-button" type="button" data-open-category-dialog>
+                <span aria-hidden="true">＋</span><span>Thêm thủ thư</span>
+            </button>
+        </div>
+
+        <div th:if="${success}" class="alert alert-ok" th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-err" th:text="${error}"></div>
+
+        <dialog class="category-dialog staff-dialog" id="category-dialog" th:attr="data-open-on-load=${moDialog}">
+            <div class="category-dialog-heading">
+                <div class="category-dialog-icon" aria-hidden="true">♟</div>
+                <div>
+                    <h2 th:text="${dangSua} ? 'Cập nhật thủ thư' : 'Thêm thủ thư'">Thêm thủ thư</h2>
+                    <p>Mã nhân viên tự sinh. Mật khẩu được lưu dưới dạng BCrypt.</p>
+                </div>
+                <button class="category-dialog-close" type="button" aria-label="Đóng" data-close-category-dialog>×</button>
+            </div>
+            <form method="post" th:action="@{/nhanvien/luu}" th:object="${form}">
+                <input type="hidden" th:field="*{maNhanVien}">
+                <div class="staff-form-grid">
+                    <div class="field staff-span-2">
+                        <label for="staff-name">Họ và tên *</label>
+                        <input id="staff-name" th:field="*{hoTen}" required maxlength="100" autocomplete="name">
+                    </div>
+                    <div class="field">
+                        <label for="staff-birthdate">Ngày sinh</label>
+                        <input id="staff-birthdate" type="date" th:field="*{ngaySinh}">
+                    </div>
+                    <div class="field">
+                        <label for="staff-phone">Số điện thoại</label>
+                        <input id="staff-phone" type="tel" th:field="*{dienThoai}" maxlength="15" autocomplete="tel">
+                    </div>
+                    <div class="field staff-span-2">
+                        <label for="staff-address">Địa chỉ</label>
+                        <input id="staff-address" th:field="*{diaChi}" maxlength="200" autocomplete="street-address">
+                    </div>
+                    <div class="staff-account-section staff-span-2">
+                        <h3>Tài khoản đăng nhập</h3>
+                        <p th:if="${dangSua}" class="sub">Để trống mật khẩu nếu không muốn đổi mật khẩu hiện tại.</p>
+                    </div>
+                    <div class="field staff-span-2">
+                        <label for="staff-username" th:text="${!dangSua or form.tenDangNhap != null} ? 'Tên đăng nhập *' : 'Tên đăng nhập (tùy chọn)'">
+                            Tên đăng nhập
+                        </label>
+                        <input id="staff-username" th:field="*{tenDangNhap}"
+                               th:required="${!dangSua or form.tenDangNhap != null}" maxlength="50" autocomplete="username">
+                    </div>
+                    <div class="field">
+                        <label for="staff-password" th:text="${dangSua} ? 'Mật khẩu mới (nếu đổi)' : 'Mật khẩu (ít nhất 6 ký tự)'">
+                            Mật khẩu
+                        </label>
+                        <input id="staff-password" th:field="*{matKhau}" type="password"
+                               th:required="${!dangSua}" minlength="6" autocomplete="new-password">
+                    </div>
+                    <div class="field">
+                        <label for="staff-confirm-password">Xác nhận mật khẩu</label>
+                        <input id="staff-confirm-password" th:field="*{xacNhanMatKhau}" type="password"
+                               minlength="6" autocomplete="new-password">
+                    </div>
+                </div>
+                <div class="category-dialog-actions">
+                    <a class="btn btn-ghost" th:href="@{/nhanvien}">Hủy</a>
+                    <button class="btn btn-primary" type="submit" th:text="${dangSua} ? 'Lưu thay đổi' : 'Thêm thủ thư'">
+                        Thêm thủ thư
+                    </button>
+                </div>
+            </form>
+        </dialog>
+
+        <div th:if="${dsNhanVien.isEmpty()}" class="empty">Chưa có nhân viên.</div>
+        <div class="table-scroll" th:if="${!dsNhanVien.isEmpty()}">
+            <table>
+                <thead>
+                <tr>
+                    <th class="code-column">Mã</th>
+                    <th>Họ và tên</th>
+                    <th>Ngày sinh</th>
+                    <th>Số điện thoại</th>
+                    <th>Tài khoản</th>
+                    <th>Trạng thái</th>
+                    <th class="staff-actions-heading">Thao tác</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="nv : ${dsNhanVien}">
+                    <td class="code-column" th:text="${nv.maNhanVien}">NV01</td>
+                    <td th:text="${nv.hoTen}">Tên nhân viên</td>
+                    <td th:text="${nv.ngaySinh != null ? nv.ngaySinh : '—'}">1995-10-20</td>
+                    <td th:text="${nv.dienThoai != null and !nv.dienThoai.isBlank() ? nv.dienThoai : '—'}">0988888888</td>
+                    <td th:text="${nv.coTaiKhoan ? nv.tenDangNhap : 'Chưa cấp'}">admin</td>
+                    <td>
+                        <span class="badge" th:classappend="${nv.coTaiKhoan} ? ' ok' : ' mute'"
+                              th:text="${nv.coTaiKhoan ? 'Có tài khoản' : 'Chưa có tài khoản'}">Có tài khoản</span>
+                    </td>
+                    <td class="actions">
+                        <a class="btn btn-ghost btn-sm"
+                           th:href="@{/nhanvien/sua/{ma}(ma=${nv.maNhanVien},page=${pagination.currentPage})}">Sửa</a>
+                        <form class="confirm-delete-form" th:action="@{/nhanvien/xoa/{ma}(ma=${nv.maNhanVien})}"
+                              method="post" th:attr="data-confirm-name=${nv.hoTen}">
+                            <button class="btn btn-danger btn-sm" type="submit">Xóa</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div th:replace="~{fragments/pagination :: pager(${pagination}, ${paginationUrl})}"></div>
+
+        <dialog class="category-dialog delete-dialog" id="delete-dialog">
+            <div class="category-dialog-heading">
+                <div class="delete-dialog-icon" aria-hidden="true">!</div>
+                <div><h2>Xác nhận xóa</h2><p>Hồ sơ và tài khoản nhân viên sẽ bị xóa.</p></div>
+                <button class="category-dialog-close" type="button" aria-label="Đóng" data-close-delete-dialog>×</button>
+            </div>
+            <div class="delete-dialog-content">
+                <p>Bạn có chắc muốn xóa thủ thư <strong id="delete-item-name"></strong> không?</p>
+                <p class="delete-dialog-note">Nhân viên đã lập phiếu mượn hoặc đang đăng nhập sẽ không thể bị xóa.</p>
+                <div class="category-dialog-actions">
+                    <button class="btn btn-ghost" type="button" data-close-delete-dialog>Hủy</button>
+                    <button class="btn btn-danger" type="button" id="confirm-delete-item">Xóa thủ thư</button>
+                </div>
+            </div>
+        </dialog>
+    </div>
+</div>
+</body>
+</html>

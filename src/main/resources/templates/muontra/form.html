@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${pageTitle}">Lập phiếu mượn</title>
+    <link rel="stylesheet" th:href="@{/css/app.css(v=16)}">
+</head>
+<body>
+<div th:replace="~{fragments/layout :: topbar('muontra')}"></div>
+<div class="container">
+    <div class="card">
+        <h1>Lập phiếu mượn</h1>
+        <p class="sub">Hệ thống kiểm tra tồn kho &gt; 0 trước khi mượn, rồi tự trừ số lượng sách.</p>
+
+        <div th:if="${error}" class="alert alert-err" th:text="${error}"></div>
+
+        <form th:action="@{/muontra/tao}" method="post" th:object="${form}">
+            <div class="grid">
+                <div class="field field-code">
+                    <label>Mã phiếu (tự động)</label>
+                    <input th:field="*{maPhieu}" readonly maxlength="20" class="code-input">
+                </div>
+                <div class="field">
+                    <label>Độc giả *</label>
+                    <select th:field="*{maDocGia}" required>
+                        <option value="">-- Chọn độc giả --</option>
+                        <option th:each="dg : ${dsDocGia}" th:value="${dg.maDocGia}"
+                                th:text="${dg.maDocGia + ' - ' + dg.hoTen}"></option>
+                    </select>
+                    <button class="btn btn-ghost btn-sm reader-toggle" type="button"
+                            aria-expanded="false" aria-controls="add-reader-panel">+ Thêm độc giả mới</button>
+                    <dialog class="category-dialog quick-add-dialog reader-quick-add-dialog" id="add-reader-panel">
+                        <div class="category-dialog-heading">
+                            <div class="category-dialog-icon" aria-hidden="true">♙</div>
+                            <div>
+                                <h2>Thêm độc giả mới</h2>
+                                <p>Mã độc giả sẽ được tạo tự động.</p>
+                            </div>
+                            <button class="category-dialog-close" type="button" aria-label="Đóng" data-close-reader-dialog>×</button>
+                        </div>
+                        <div class="quick-add-content reader-quick-add-content">
+                            <label for="new-reader-name">Họ và tên *</label>
+                            <input id="new-reader-name" type="text" maxlength="100" placeholder="Nhập họ tên độc giả" autocomplete="name">
+                            <label for="new-reader-birthdate">Ngày sinh</label>
+                            <input id="new-reader-birthdate" type="date">
+                            <label for="new-reader-phone">Số điện thoại</label>
+                            <input id="new-reader-phone" type="tel" maxlength="15" placeholder="Nhập số điện thoại" autocomplete="tel">
+                            <label for="new-reader-address">Địa chỉ</label>
+                            <input id="new-reader-address" type="text" maxlength="200" placeholder="Nhập địa chỉ" autocomplete="street-address">
+                            <button class="btn btn-primary btn-sm" id="add-reader-button" type="button">Thêm độc giả</button>
+                            <div id="reader-add-message" class="author-add-message" role="status" aria-live="polite"></div>
+                        </div>
+                    </dialog>
+                </div>
+                <div class="field">
+                    <label>Nhân viên lập phiếu</label>
+                    <input th:value="${nhanVienLapPhieu.maNhanVien + ' - ' + nhanVienLapPhieu.hoTen}"
+                           readonly aria-readonly="true">
+                    <small class="subtle">Tự động lấy theo tài khoản đang đăng nhập.</small>
+                </div>
+                <div class="field">
+                    <label>Ngày mượn *</label>
+                    <input type="date" th:field="*{ngayMuon}" required>
+                </div>
+                <div class="field">
+                    <label>Hạn trả * (BR-04 ≥ ngày mượn)</label>
+                    <input type="date" th:field="*{hanTra}" required>
+                </div>
+            </div>
+
+            <div class="loan-books-heading">
+                <div>
+                    <h2>Chi tiết sách mượn</h2>
+                    <p>Chọn một sách cho mỗi dòng. Bấm thêm sách để chọn tiếp.</p>
+                </div>
+                <button class="btn btn-ghost btn-sm" id="add-loan-book" type="button">＋ Thêm sách</button>
+            </div>
+            <table class="loan-book-form-table">
+                <thead>
+                <tr>
+                    <th>Sách (tồn kho)</th>
+                    <th style="width:140px">Số lượng</th>
+                    <th class="loan-book-remove-heading"></th>
+                </tr>
+                </thead>
+                <tbody id="loan-book-rows">
+                <tr th:each="dong, stat : *{chiTiet}">
+                    <td data-label="Sách (tồn kho)">
+                        <select th:field="*{chiTiet[__${stat.index}__].maSach}" data-loan-book-select>
+                            <option value="">-- Bỏ trống nếu không dùng dòng này --</option>
+                            <option th:each="s : ${dsSach}" th:value="${s.maSach}"
+                                    th:text="${s.maSach + ' - ' + s.tenSach + ' (còn ' + s.soLuong + ')'}"></option>
+                        </select>
+                    </td>
+                    <td data-label="Số lượng">
+                        <input type="number" min="1" th:field="*{chiTiet[__${stat.index}__].soLuong}" placeholder="1" data-loan-book-quantity>
+                    </td>
+                    <td class="loan-book-remove-cell">
+                        <button class="btn btn-ghost btn-sm loan-book-remove" type="button"
+                                aria-label="Xóa dòng sách" title="Xóa dòng sách">×</button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+
+            <div class="toolbar" style="margin-top:18px">
+                <button class="btn btn-primary" type="submit">Lưu phiếu mượn</button>
+                <a class="btn btn-ghost" th:href="@{/muontra}">Hủy</a>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

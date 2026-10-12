@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+<div th:fragment="topbar(active)">
+    <aside class="sidebar" id="app-sidebar" aria-label="Điều hướng chính">
+        <a class="sidebar-brand" th:href="@{/}" aria-label="Quản lý thư viện">
+            <span class="sidebar-brand-icon" aria-hidden="true">
+                <svg class="library-logo" viewBox="0 0 48 48" fill="none" focusable="false">
+                    <path d="M7.5 11.5c6.4-2.4 12-.9 16.5 3v25c-4.5-3.9-10.1-5.4-16.5-3v-25Z"
+                          stroke="currentColor" stroke-width="2.8" stroke-linejoin="round"/>
+                    <path d="M40.5 11.5c-6.4-2.4-12-.9-16.5 3v25c4.5-3.9 10.1-5.4 16.5-3v-25Z"
+                          stroke="currentColor" stroke-width="2.8" stroke-linejoin="round"/>
+                    <path d="M12 17c3-.7 6-.3 8.5 1.1M12 22c3-.7 6-.3 8.5 1.1M36 17c-3-.7-6-.3-8.5 1.1M36 22c-3-.7-6-.3-8.5 1.1"
+                          stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+                </svg>
+            </span>
+            <span class="sidebar-brand-text">Quản lý thư viện<small>Hệ thống thư viện</small></span>
+        </a>
+        <nav class="sidebar-nav">
+            <a th:href="@{/}" th:classappend="${active == 'dashboard'} ? 'active'" title="Dashboard">
+                <span class="sidebar-icon" aria-hidden="true">⌂</span><span class="sidebar-link-text">Dashboard</span>
+            </a>
+            <a th:href="@{/sach}" th:classappend="${active == 'sach'} ? 'active'" title="Danh sách sách">
+                <span class="sidebar-icon" aria-hidden="true">▤</span><span class="sidebar-link-text">Danh sách sách</span>
+            </a>
+            <a th:href="@{/sach/them}" th:classappend="${active == 'them'} ? 'active'" title="Thêm sách">
+                <span class="sidebar-icon" aria-hidden="true">＋</span><span class="sidebar-link-text">Thêm sách</span>
+            </a>
+            <a th:href="@{/danhmuc/tac-gia}" th:classappend="${active == 'tac-gia'} ? 'active'" title="Quản lý tác giả">
+                <span class="sidebar-icon" aria-hidden="true">✎</span><span class="sidebar-link-text">Tác giả</span>
+            </a>
+            <a th:href="@{/danhmuc/the-loai}" th:classappend="${active == 'the-loai'} ? 'active'" title="Quản lý thể loại">
+                <span class="sidebar-icon" aria-hidden="true">▧</span><span class="sidebar-link-text">Thể loại</span>
+            </a>
+            <a th:href="@{/danhmuc/nha-xuat-ban}" th:classappend="${active == 'nha-xuat-ban'} ? 'active'" title="Quản lý nhà xuất bản">
+                <span class="sidebar-icon" aria-hidden="true">▣</span><span class="sidebar-link-text">Nhà xuất bản</span>
+            </a>
+            <a th:href="@{/docgia}" th:classappend="${active == 'docgia'} ? 'active'" title="Quản lý độc giả">
+                <span class="sidebar-icon" aria-hidden="true">♙</span><span class="sidebar-link-text">Độc giả</span>
+            </a>
+            <a sec:authorize="hasRole('ADMIN')" th:href="@{/nhanvien}"
+               th:classappend="${active == 'nhanvien'} ? 'active'" title="Quản lý nhân viên, tài khoản">
+                <span class="sidebar-icon" aria-hidden="true">♟</span><span class="sidebar-link-text">Thủ thư &amp; tài khoản</span>
+            </a>
+            <a th:href="@{/muontra}" th:classappend="${active == 'muontra'} ? 'active'" title="Mượn / Trả">
+                <span class="sidebar-icon" aria-hidden="true">⇄</span><span class="sidebar-link-text">Mượn / Trả</span>
+            </a>
+        </nav>
+    </aside>
+    <button class="sidebar-backdrop" type="button" aria-label="Đóng thanh điều hướng"></button>
+    <header class="topbar">
+        <button class="sidebar-toggle" type="button" aria-controls="app-sidebar" aria-expanded="true"
+                aria-label="Thu gọn thanh điều hướng" title="Thu gọn / mở rộng thanh điều hướng">
+            <span aria-hidden="true">☰</span>
+        </button>
+        <div class="topbar-title">
+            <span th:text="${active == 'dashboard' ? 'Dashboard quản lý' : active == 'muontra' ? 'Mượn / Trả sách' : active == 'them' ? 'Thêm sách' : active == 'sach' ? 'Danh sách sách' : active == 'tac-gia' ? 'Quản lý tác giả' : active == 'the-loai' ? 'Quản lý thể loại' : active == 'nha-xuat-ban' ? 'Quản lý nhà xuất bản' : active == 'docgia' ? 'Quản lý độc giả' : active == 'nhanvien' ? 'Quản lý thủ thư &amp; tài khoản' : 'Quản lý thư viện'}">Dashboard quản lý</span>
+            <small>Quản lý thư viện</small>
+        </div>
+        <div class="topbar-account">
+            <span sec:authentication="name"></span>
+            <form th:action="@{/logout}" method="post">
+                <button class="btn btn-ghost btn-sm" type="submit">Đăng xuất</button>
+            </form>
+        </div>
+    </header>
+    <dialog class="category-dialog delete-dialog" id="action-confirm-dialog"
+            aria-labelledby="action-confirm-title" aria-describedby="action-confirm-message">
+        <div class="category-dialog-heading">
+            <div class="delete-dialog-icon" aria-hidden="true">!</div>
+            <div>
+                <h2 id="action-confirm-title">Xác nhận thao tác</h2>
+                <p>Vui lòng xác nhận trước khi tiếp tục.</p>
+            </div>
+            <button class="category-dialog-close" type="button" aria-label="Đóng"
+                    data-close-action-confirm>×</button>
+        </div>
+        <div class="delete-dialog-content">
+            <p id="action-confirm-message"></p>
+            <div class="category-dialog-actions">
+                <button class="btn btn-ghost" type="button" data-close-action-confirm>Hủy</button>
+                <button class="btn btn-danger" type="button" id="confirm-action">Xác nhận</button>
+            </div>
+        </div>
+    </dialog>
+    <script th:src="@{/js/app.js(v=15)}" defer></script>
+</div>
+</body>
+</html>

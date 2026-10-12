@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${pageTitle}">Mượn trả</title>
+    <link rel="stylesheet" th:href="@{/css/app.css(v=16)}">
+</head>
+<body>
+<div th:replace="~{fragments/layout :: topbar('muontra')}"></div>
+<div class="container">
+    <div class="card">
+        <div class="loan-page-heading">
+            <div>
+                <span class="page-kicker">NGHIỆP VỤ THƯ VIỆN</span>
+                <h1>Quản lý mượn / trả sách</h1>
+                <p class="sub">Theo dõi phiếu mượn, tình trạng trả sách và hạn trả.</p>
+            </div>
+            <a class="btn btn-primary" th:href="@{/muontra/tao}"><span aria-hidden="true">＋</span> Lập phiếu mượn</a>
+        </div>
+
+        <div th:if="${success}" class="alert alert-ok" role="status" aria-live="polite"
+             th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-err" role="alert" th:text="${error}"></div>
+
+        <section class="loan-stats" aria-label="Thống kê phiếu mượn">
+            <article class="loan-stat">
+                <span class="loan-stat-icon">▤</span>
+                <div><span class="loan-stat-label">Tổng phiếu</span><strong th:text="${tongPhieu}">0</strong></div>
+            </article>
+            <article class="loan-stat loan-stat-active">
+                <span class="loan-stat-icon">↗</span>
+                <div><span class="loan-stat-label">Đang mượn</span><strong th:text="${dangMuon}">0</strong></div>
+            </article>
+            <article class="loan-stat loan-stat-overdue">
+                <span class="loan-stat-icon">!</span>
+                <div><span class="loan-stat-label">Quá hạn</span><strong th:text="${quaHan}">0</strong></div>
+            </article>
+            <article class="loan-stat loan-stat-returned">
+                <span class="loan-stat-icon">✓</span>
+                <div><span class="loan-stat-label">Đã trả</span><strong th:text="${daTra}">0</strong></div>
+            </article>
+        </section>
+
+        <form class="loan-filters" method="get" th:action="@{/muontra}" role="search">
+            <div class="loan-search-field">
+                <label class="sr-only" for="loan-search">Tìm phiếu mượn</label>
+                <span aria-hidden="true">⌕</span>
+                <input id="loan-search" type="search" name="q" th:value="${q}"
+                       placeholder="Tìm mã phiếu, độc giả, nhân viên hoặc sách..." autocomplete="off">
+            </div>
+            <div class="loan-status-field">
+                <label class="sr-only" for="loan-status">Lọc trạng thái</label>
+                <select id="loan-status" name="status">
+                    <option value="ALL" th:selected="${status == 'ALL'}">Tất cả trạng thái</option>
+                    <option value="BORROWED" th:selected="${status == 'BORROWED'}">Đang mượn</option>
+                    <option value="OVERDUE" th:selected="${status == 'OVERDUE'}">Quá hạn</option>
+                    <option value="RETURNED" th:selected="${status == 'RETURNED'}">Đã trả</option>
+                    <option value="LOST" th:selected="${status == 'LOST'}">Có sách mất</option>
+                </select>
+            </div>
+            <button class="btn btn-primary" type="submit">Lọc phiếu</button>
+            <a class="btn btn-ghost" th:if="${!#strings.isEmpty(q) or status != 'ALL'}" th:href="@{/muontra}">Xóa lọc</a>
+        </form>
+
+        <div class="loan-list-heading">
+            <div>
+                <h2>Danh sách phiếu</h2>
+                <p th:text="${soPhieuPhuHop + ' phiếu phù hợp'}">0 phiếu phù hợp</p>
+            </div>
+        </div>
+
+        <div th:if="${dsPhieu == null or dsPhieu.isEmpty()}" class="loan-empty">
+            <span aria-hidden="true">▤</span>
+            <strong th:text="${tongPhieu == 0} ? 'Chưa có phiếu mượn' : 'Không tìm thấy phiếu phù hợp'">Chưa có phiếu mượn</strong>
+            <p th:text="${tongPhieu == 0} ? 'Tạo phiếu mượn đầu tiên để bắt đầu theo dõi.' : 'Thử thay đổi từ khóa hoặc trạng thái lọc.'">Tạo phiếu mượn đầu tiên để bắt đầu theo dõi.</p>
+            <a class="btn btn-primary btn-sm" th:if="${tongPhieu == 0}" th:href="@{/muontra/tao}">Lập phiếu mượn</a>
+        </div>
+
+        <div class="loan-block" th:each="p, stat : ${dsPhieu}">
+            <div class="loan-block-header">
+                <div>
+                    <div class="loan-title-line">
+                        <strong class="code-column" th:text="${p.maPhieu}">PM01</strong>
+                        <span class="badge loan-status-badge"
+                              th:text="${p.trangThai()}"
+                              th:classappend="${p.trangThai() == 'Đã trả'} ? ' ok' : (${p.trangThai() == 'Quá hạn' or p.trangThai() == 'Có sách mất'} ? ' bad' : ' warn')">Đang mượn</span>
+                    </div>
+                    <p class="loan-reader-line">
+                        <span class="loan-meta-label">Độc giả</span>
+                        <strong th:text="${p.docGia != null ? p.docGia.hoTen : p.maDocGia}">Độc giả</strong>
+                        <span class="loan-meta-separator">·</span>
+                        <span class="loan-meta-label">Nhân viên</span>
+                        <span th:text="${p.nhanVien != null ? p.nhanVien.hoTen : p.maNhanVien}">Nhân viên</span>
+                    </p>
+                    <div class="loan-date-line">
+                        <span>Ngày mượn <strong th:text="${p.ngayMuon}">2026-01-01</strong></span>
+                        <span>Hạn trả <strong th:text="${p.hanTra}">2026-01-15</strong></span>
+                    </div>
+                </div>
+                <button class="btn btn-ghost btn-sm loan-detail-link" type="button"
+                        th:attr="data-open-loan-detail=${'loan-detail-dialog-' + stat.index}">
+                    Xem chi tiết <span aria-hidden="true">→</span>
+                </button>
+            </div>
+            <div class="loan-table-wrap">
+            <table class="loan-table">
+                <thead>
+                <tr>
+                    <th class="code-column">Mã sách</th>
+                    <th>Tên sách</th>
+                    <th>SL mượn</th>
+                    <th>Ngày trả</th>
+                    <th class="loan-actions-heading">Thao tác</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="ct : ${p.chiTiet}">
+                    <td class="code-column" th:text="${ct.maSach}">S01</td>
+                    <td th:text="${ct.sach != null ? ct.sach.tenSach : ''}">Tên</td>
+                    <td>
+                        <span th:text="${ct.soLuong}">1</span>
+                        <small th:if="${ct.soLuongMat != null and ct.soLuongMat > 0}"
+                               th:text="${'(mất ' + ct.soLuongMat + ')'}">(mất 1)</small>
+                    </td>
+                    <td>
+                        <span th:if="${ct.daTra()}" th:text="${ct.ngayTra}">2026-01-10</span>
+                        <span th:if="${ct.daMat()}" class="badge bad"
+                              th:text="${ct.dangMuon() ? 'Mất ' + ct.soLuongMat + ', còn mượn ' + ct.soLuongConDangMuon() : 'Đã mất ' + ct.soLuongMat + ' cuốn'}">Đã mất</span>
+                        <span th:if="${ct.dangMuon() and !ct.daMat()}" class="badge warn">Chưa xử lý</span>
+                    </td>
+                    <td>
+                        <div th:if="${ct.dangMuon()}" class="loan-actions">
+                            <form th:action="@{/muontra/{mp}/tra/{ms}(mp=${p.maPhieu}, ms=${ct.maSach})}"
+                                  method="post" data-confirm="Xác nhận trả các cuốn còn lại và hoàn kho?">
+                                <button class="btn btn-primary btn-sm" type="submit">Trả còn lại</button>
+                            </form>
+                            <form th:action="@{/muontra/{mp}/mat/{ms}(mp=${p.maPhieu}, ms=${ct.maSach})}"
+                                  method="post" class="loan-loss-form"
+                                  data-confirm="Ghi nhận số cuốn đã nhập là bị mất?">
+                                <label class="loan-loss-quantity">Mất
+                                    <input type="number" name="soLuongMat" min="1"
+                                           th:max="${ct.soLuongConDangMuon()}" value="1" required
+                                           aria-label="Số cuốn bị mất">
+                                    cuốn
+                                </label>
+
+                                <button class="btn btn-danger btn-sm" type="submit">Ghi nhận mất</button>
+                            </form>
+                        </div>
+                        <span th:if="${ct.daTra()}" class="badge mute">Đã trả</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            </div>
+            <dialog class="loan-detail-dialog" th:id="${'loan-detail-dialog-' + stat.index}"
+                    th:attr="aria-labelledby=${'loan-detail-title-' + stat.index}">
+                <div class="loan-detail-dialog-header">
+                    <div>
+                        <span class="page-kicker">CHI TIẾT GIAO DỊCH</span>
+                        <h2 th:id="${'loan-detail-title-' + stat.index}">Phiếu <span class="code-column" th:text="${p.maPhieu}">PM01</span></h2>
+                    </div>
+                    <button class="category-dialog-close" type="button" aria-label="Đóng chi tiết phiếu"
+                            data-close-loan-detail>×</button>
+                </div>
+                <div class="loan-detail-dialog-body">
+                    <div class="loan-detail-info">
+                        <article>
+                            <span class="loan-detail-label">Độc giả</span>
+                            <strong th:text="${p.docGia != null ? p.docGia.hoTen : p.maDocGia}">Độc giả</strong>
+                            <small th:text="${p.maDocGia}">DG01</small>
+                            <small th:if="${p.docGia != null and p.docGia.dienThoai != null}"
+                                   th:text="${p.docGia.dienThoai}">Số điện thoại</small>
+                        </article>
+                        <article>
+                            <span class="loan-detail-label">Nhân viên lập phiếu</span>
+                            <strong th:text="${p.nhanVien != null ? p.nhanVien.hoTen : p.maNhanVien}">Nhân viên</strong>
+                            <small th:text="${p.maNhanVien}">NV01</small>
+                        </article>
+                        <article>
+                            <span class="loan-detail-label">Ngày mượn</span>
+                            <strong th:text="${p.ngayMuon}">2026-01-01</strong>
+                        </article>
+                        <article>
+                            <span class="loan-detail-label">Hạn trả</span>
+                            <strong th:text="${p.hanTra}">2026-01-15</strong>
+                        </article>
+                    </div>
+                    <div class="loan-detail-dialog-books">
+                        <div class="loan-list-heading">
+                            <div>
+                                <h3>Sách trong phiếu</h3>
+                                <p th:text="${p.chiTiet.size() + ' đầu sách'}">0 đầu sách</p>
+                            </div>
+                            <span class="badge loan-status-badge"
+                                  th:text="${p.trangThai()}"
+                                  th:classappend="${p.trangThai() == 'Đã trả'} ? ' ok' : (${p.trangThai() == 'Quá hạn' or p.trangThai() == 'Có sách mất'} ? ' bad' : ' warn')">Đang mượn</span>
+                        </div>
+                        <div class="loan-table-wrap">
+                            <table class="loan-table loan-detail-table">
+                                <thead>
+                                <tr>
+                                    <th>Mã sách</th>
+                                    <th>Tên sách</th>
+                                    <th>Số lượng</th>
+                                    <th>Ngày trả</th>
+                                    <th>Trạng thái</th>
+                                    <th class="loan-actions-heading">Thao tác</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="ct : ${p.chiTiet}">
+                                    <td class="code-column" th:text="${ct.maSach}">S01</td>
+                                    <td th:text="${ct.sach != null ? ct.sach.tenSach : 'Không có thông tin sách'}">Tên sách</td>
+                                    <td>
+                                        <span th:text="${ct.soLuong}">1</span>
+                                        <small th:if="${ct.soLuongMat != null and ct.soLuongMat > 0}"
+                                               th:text="${'(mất ' + ct.soLuongMat + ')'}">(mất 1)</small>
+                                    </td>
+                                    <td th:text="${ct.daTra() ? ct.ngayTra : '—'}">—</td>
+                                    <td>
+                                        <span th:if="${ct.daTra()}" class="badge mute">Đã trả</span>
+                                        <span th:if="${ct.daMat()}" class="badge bad"
+                                              th:text="${ct.dangMuon() ? 'Mất ' + ct.soLuongMat + ', còn mượn ' + ct.soLuongConDangMuon() : 'Đã mất ' + ct.soLuongMat + ' cuốn'}">Đã mất</span>
+                                        <span th:if="${ct.dangMuon() and !ct.daMat()}" class="badge warn">Chưa xử lý</span>
+                                    </td>
+                                    <td>
+                                        <div th:if="${ct.dangMuon()}" class="loan-actions">
+                                            <form th:action="@{/muontra/{mp}/tra/{ms}(mp=${p.maPhieu}, ms=${ct.maSach})}"
+                                                  method="post" data-confirm="Xác nhận trả các cuốn còn lại và hoàn kho?">
+                                                <button class="btn btn-primary btn-sm" type="submit">Trả còn lại</button>
+                                            </form>
+                                            <form th:action="@{/muontra/{mp}/mat/{ms}(mp=${p.maPhieu}, ms=${ct.maSach})}"
+                                                  method="post" class="loan-loss-form"
+                                                  data-confirm="Ghi nhận số cuốn đã nhập là bị mất?">
+                                                <label class="loan-loss-quantity">Mất
+                                                    <input type="number" name="soLuongMat" min="1"
+                                                           th:max="${ct.soLuongConDangMuon()}" value="1" required
+                                                           aria-label="Số cuốn bị mất">
+                                                    cuốn
+                                                </label>
+
+                                                <button class="btn btn-danger btn-sm" type="submit">Ghi nhận mất</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="loan-detail-dialog-footer">
+                    <button class="btn btn-ghost" type="button" data-close-loan-detail>Đóng</button>
+                </div>
+            </dialog>
+        </div>
+        <div th:replace="~{fragments/pagination :: pager(${pagination}, ${paginationUrl})}"></div>
+    </div>
+</div>
+</body>
+</html>

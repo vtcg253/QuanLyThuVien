@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${pageTitle}">Danh sách sách</title>
+    <link rel="stylesheet" th:href="@{/css/app.css(v=16)}">
+</head>
+<body>
+<div th:replace="~{fragments/layout :: topbar('sach')}"></div>
+<div class="container">
+    <div class="card">
+        <h1>Danh sách sách</h1>
+        <p class="sub">Tìm và quản lý sách theo mã, tên sách, thể loại, tác giả hoặc nhà xuất bản.</p>
+
+        <div th:if="${success}" class="alert alert-ok" th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-err" th:text="${error}"></div>
+
+        <form class="toolbar book-search" method="get" th:action="@{/sach}" role="search">
+            <label class="sr-only" for="book-search-input">Tìm kiếm sách</label>
+            <input id="book-search-input" type="search" name="q" th:value="${q}"
+                   placeholder="Mã, tên sách, thể loại, tác giả, nhà xuất bản..." autocomplete="off">
+            <button class="btn btn-primary" type="submit">Tìm kiếm</button>
+            <a class="btn btn-ghost" th:if="${!#strings.isEmpty(q)}" th:href="@{/sach}">Xóa lọc</a>
+            <a class="btn btn-primary" th:href="@{/sach/them}">+ Thêm sách</a>
+        </form>
+
+        <p class="search-result-count" th:if="${!#strings.isEmpty(q)}"
+           th:text="'Kết quả tìm kiếm cho “' + ${q} + '”: ' + ${dsSach.size()} + ' sách'">
+            Kết quả tìm kiếm
+        </p>
+        <div th:if="${dsSach == null or dsSach.isEmpty()}" class="empty"
+             th:text="${#strings.isEmpty(q)} ? 'Chưa có dữ liệu sách.' : 'Không tìm thấy sách phù hợp. Hãy thử từ khóa khác.'">
+            Chưa có dữ liệu sách.
+        </div>
+        <table th:if="${dsSach != null and !dsSach.isEmpty()}">
+            <thead>
+            <tr>
+                <th class="code-column">Mã sách</th>
+                <th>Tên sách</th>
+                <th>Thể loại</th>
+                <th>Tác giả</th>
+                <th>NXB</th>
+                <th>Năm XB</th>
+                <th>Tồn kho</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="s : ${dsSach}">
+                <td class="code-column" th:text="${s.maSach}">S01</td>
+                <td th:text="${s.tenSach}">Tên</td>
+                <td th:text="${s.tenTheLoai}">TL</td>
+                <td th:text="${s.tenTacGia}">TG</td>
+                <td th:text="${s.tenNxb}">NXB</td>
+                <td th:text="${s.namXb}">2020</td>
+                <td>
+                    <span th:class="${s.soLuong != null and s.soLuong > 0} ? 'badge ok' : 'badge bad'"
+                          th:text="${s.soLuong}">0</span>
+                </td>
+                <td class="actions">
+                    <a class="btn btn-ghost btn-sm" th:href="@{/sach/sua/{id}(id=${s.maSach})}">Sửa</a>
+                    <form th:action="@{/sach/xoa/{id}(id=${s.maSach})}" method="post"
+                          data-confirm="Xóa sách này?">
+                        <button class="btn btn-danger btn-sm" type="submit">Xóa</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <div th:replace="~{fragments/pagination :: pager(${pagination}, ${paginationUrl})}"></div>
+    </div>
+</div>
+</body>
+</html>

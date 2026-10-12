@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${pageTitle}">Dashboard quản lý</title>
+    <link rel="stylesheet" th:href="@{/css/app.css(v=16)}">
+</head>
+<body>
+<div th:replace="~{fragments/layout :: topbar('dashboard')}" ></div>
+<div class="container">
+    <div class="card dashboard">
+        <h1>Dashboard quản lý</h1>
+        <p class="sub">Tổng quan hoạt động thư viện và tình trạng kho sách.</p>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="label">Đầu sách</span>
+                <strong th:text="${tongSach}">0</strong>
+            </div>
+            <div class="stat-card">
+                <span class="label">Tồn kho</span>
+                <strong th:text="${tongTonKho}">0</strong>
+            </div>
+            <div class="stat-card">
+                <span class="label">Phiếu mượn</span>
+                <strong th:text="${tongPhieu}">0</strong>
+            </div>
+            <a class="stat-card stat-card-link warning" th:href="@{/muontra}">
+                <span class="label">Đang mượn</span>
+                <strong th:text="${tongDangMuon}">0</strong>
+            </a>
+            <a class="stat-card stat-card-link overdue" th:href="@{/muontra}">
+                <span class="label">Phiếu quá hạn</span>
+                <strong th:text="${tongPhieuQuaHan}">0</strong>
+                <span class="stat-card-hint">Cần xử lý · Xem phiếu mượn</span>
+            </a>
+        </div>
+
+        <div class="dashboard-chart-grid">
+            <section class="chart-card stock-chart-card" aria-labelledby="stock-column-title">
+                <div class="chart-heading">
+                    <div>
+                        <h2 id="stock-column-title">Tồn kho theo đầu sách</h2>
+                        <p class="sub">Số cuốn hiện còn trong kho của từng đầu sách.</p>
+                    </div>
+                    <a class="chart-link" th:href="@{/sach}">Xem danh sách</a>
+                </div>
+                <div th:if="${#lists.isEmpty(thongKeTonKho)}" class="empty">Chưa có dữ liệu sách để hiển thị.</div>
+                <div th:unless="${#lists.isEmpty(thongKeTonKho)}" class="column-chart stock-column-chart" role="img"
+                     aria-label="Biểu đồ cột số cuốn tồn kho theo từng đầu sách">
+                    <div class="column-chart-item" th:each="sach : ${thongKeTonKho}"
+                         th:title="${sach.tenSach + ': ' + sach.soLuong + ' cuốn còn trong kho'}">
+                        <strong class="column-chart-value" th:text="${sach.soLuong}">0</strong>
+                        <div class="column-chart-plot">
+                            <span class="column-chart-bar"
+                                  th:style="'height:' + ${sach.chieuCao} + '%'"></span>
+                        </div>
+                        <span class="column-chart-name" th:text="${sach.tenSach}">Tên sách</span>
+                        <span class="column-chart-code" th:text="${sach.maSach}">Mã sách</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="chart-card borrow-pie-card" aria-labelledby="borrow-chart-title">
+                <div class="chart-heading">
+                    <div>
+                        <h2 id="borrow-chart-title">Tỷ lệ mượn theo đầu sách</h2>
+                        <p class="sub">Tỷ trọng số cuốn đã mượn.</p>
+                    </div>
+                    <a class="chart-link" th:href="@{/muontra}">Phiếu mượn</a>
+                </div>
+                <div th:if="${#lists.isEmpty(bieuDoMuonSach.sach)}" class="empty">Chưa có dữ liệu sách để hiển thị.</div>
+                <div th:unless="${#lists.isEmpty(bieuDoMuonSach.sach)}" class="pie-chart-layout">
+                    <div class="pie-chart"
+                         role="img"
+                         th:aria-label="'Tỷ lệ mượn của ' + ${bieuDoMuonSach.sach.size()} + ' đầu sách'"
+                         th:style="'background: conic-gradient(' + ${bieuDoMuonSach.phanVung} + ')'">
+                        <div class="pie-chart-center">
+                            <strong th:text="${bieuDoMuonSach.tongLuotMuon}">0</strong>
+                            <span>cuốn đã mượn</span>
+                        </div>
+                    </div>
+                    <div class="pie-chart-legend">
+                        <div class="pie-legend-row" th:each="sach : ${bieuDoMuonSach.sach}">
+                            <span class="pie-legend-swatch" th:style="'background-color:' + ${sach.mauSac}"></span>
+                            <span class="pie-legend-name" th:text="${sach.tenSach}">Tên sách</span>
+                            <span class="pie-legend-code" th:text="${sach.maSach}">Mã sách</span>
+                            <strong class="pie-legend-value" th:text="${sach.soLuongMuon} + ' (' + ${sach.tiLe} + '%)'">0 (0%)</strong>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <section class="chart-card status-chart-card" aria-labelledby="borrow-status-title">
+            <div class="chart-heading">
+                <div>
+                    <h2 id="borrow-status-title">Tình trạng mượn và trả</h2>
+                    <p class="sub">Số cuốn đang mượn, quá hạn, đã trả đúng hạn, đã trả trễ hạn và đã mất.</p>
+                </div>
+                <a class="chart-link" th:href="@{/muontra}">Xem phiếu mượn</a>
+            </div>
+            <div class="column-chart status-column-chart" role="img"
+                 aria-label="Biểu đồ cột số lượng sách theo tình trạng mượn và trả">
+                <div class="column-chart-item" th:each="trangThai : ${thongKeTrangThaiMuon}"
+                     th:title="${trangThai.nhan + ': ' + trangThai.soLuong + ' cuốn'}">
+                    <strong class="column-chart-value" th:text="${trangThai.soLuong}">0</strong>
+                    <div class="column-chart-plot">
+                        <span class="column-chart-bar"
+                              th:style="'height:' + ${trangThai.chieuCao} + '%;background:' + ${trangThai.mauSac}"></span>
+                    </div>
+                    <span class="column-chart-name" th:text="${trangThai.nhan}">Trạng thái</span>
+                </div>
+            </div>
+        </section>
+
+        <div class="toolbar" style="margin-top:24px;">
+            <a class="btn btn-primary" th:href="@{/sach}">Xem danh sách sách</a>
+            <a class="btn btn-ghost" th:href="@{/sach/them}">+ Thêm sách mới</a>
+            <a class="btn btn-primary" th:href="@{/muontra}">Mượn / Trả</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>
